@@ -35,7 +35,7 @@ python manage.py runserver
 ```
 ## Endponints
 
-* To see url endpints go to 'test2/urls.py'
+* To see url endpints go to 'test2/urls.py' and 'core/urls.py'
 ## Admin page
 * First create a superuser
 ```
