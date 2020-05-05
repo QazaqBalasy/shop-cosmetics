@@ -47,6 +47,5 @@ python manage.py createsuperuser
 # TODO
 
 * Fix 'Favorites' (model,views,serializers)
-* Add Bank Card
 
 
