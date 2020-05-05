@@ -51,12 +51,22 @@ urlpatterns = [
         name=views.ConfirmedOrderDetail.name,
     ),
     path(
-        "cosmetics/<int:pk>/add-favorite/", views.FavoriteCosmeticList.as_view(),name=views.FavoriteCosmeticList.name
+        "cosmetics/<int:pk>/add-favorite/", views.UserFavViewSet.as_view({'post':'create'}),name=views.UserFavViewSet.name
     ),
     path(
-        "favorites/", views.FavoriteCosmeticList.as_view(),name=views.FavoriteCosmeticList.name
+        "favorites/", views.UserFavViewSet.as_view({'get': 'list'}),name=views.UserFavViewSet.name
     ),
     path(
-        "favorites/<int:cosmetic_pk>/", views.FavoriteCosmeticDelete.as_view(),name=views.FavoriteCosmeticDelete.name
+        "favorites/<int:pk>/", views.UserFavViewSet.as_view({'delete':'destroy'}),name=views.UserFavViewSet.name
     ),
+    path(
+        "bankcards/<int:pk>", views.BankCardDelete.as_view(),name=views.BankCardDelete.name
+            ),
+    path(
+        "bankcards/add/", views.BankCardCreate.as_view(),name=views.BankCardCreate.name
+            ),
+    path(
+        "bankcards/", views.BankCardList.as_view()
+            ),
+
 ]

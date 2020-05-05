@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator, MinValueValidator
 from decimal import *
 from django.utils import timezone
+from datetime import datetime,time
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 # Create your models here.
 
@@ -46,17 +49,19 @@ class Order(models.Model):
     profile = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="orders", editable=False
     )
-    street = models.CharField(max_length=255, blank=True, editable=False)
-    street_number = models.CharField(max_length=10, blank=True, editable=False)
-    flat_number = models.CharField(max_length=10, blank=True, editable=False)
+    street = models.CharField(max_length=255, blank=True)
+    street_number = models.CharField(max_length=10, blank=True)
+    flat_number = models.CharField(max_length=10, blank=True)
     zip_code = models.CharField(
         max_length=6,
         help_text="Valid zip code (000000)",
         blank=True,
-        editable=False,
     )
-    city = models.CharField(max_length=255, blank=True, editable=False)
-    province = models.CharField(max_length=255, blank=True, editable=False)
+    city = models.CharField(max_length=255, blank=True)
+    province = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=255, blank=True)
+    surname = models.CharField(max_length=255,blank=True)
+    phone = models.CharField(max_length=12,blank=True)
 
     def is_locked(self):
         return self.confirmation_date is not None
@@ -83,7 +88,7 @@ class Order(models.Model):
         # self.city = self.profile.city
         # self.province = self.profile.province
 
-        self.full_clean()
+        #self.full_clean()
         self.save()
 
 
@@ -122,14 +127,44 @@ class Basket(models.Model):
         ]
 
 
-class FavoriteCosmetic(models.Model):
-    cosmetic = models.ForeignKey(Cosmetic, on_delete=models.CASCADE, related_name = "favorite")
-    profile = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="favorite_cosmetics", editable=False
-    )
-    # class Meta:
-    #     constraints = [
-    #         models.UniqueConstraint(
-    #             fields=["profile","cosmetic"] , name="unique_favorite_cosmetics"
-    #         )
-    #     ]
+# class FavoriteCosmetic(models.Model):
+#     cosmetics = models.ManyToManyField(Cosmetic)
+#     profile = models.ForeignKey(
+#         User, on_delete=models.CASCADE, related_name="favorite_cosmetics", editable=False
+#     )
+#     # class Meta:
+#     #     constraints = [
+#     #         models.UniqueConstraint(
+#     #             fields=["profile","cosmetic"] , name="unique_favorite_cosmetics"
+#     #         )
+#     #     ]
+
+
+class UserFav(models.Model):
+    """
+    Favorite Cosmetics of user
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='user')
+    cosmetics = models.ForeignKey(Cosmetic, on_delete=models.CASCADE, verbose_name='favorites', help_text='selected')
+    add_time = models.DateTimeField(default=datetime.now, verbose_name='added date')
+
+    class Meta:
+        verbose_name = 'Favorites'
+        verbose_name_plural = verbose_name
+        unique_together = ('user', 'cosmetics')
+
+    def __str__(self):
+        return self.user.username
+
+
+class BankCard(models.Model):
+    number = models.DecimalField(max_digits=16,decimal_places=0)
+    name = models.CharField(max_length=255)
+    surname = models.CharField(max_length=255)
+    CVC = models.DecimalField(max_digits=3,decimal_places=0)
+    date = models.CharField( max_length=5,verbose_name='expiration date');
+    user = models.ForeignKey(User,on_delete= models.CASCADE,related_name="card")
+
+    class Meta:
+        unique_together = (("user", "number"),)

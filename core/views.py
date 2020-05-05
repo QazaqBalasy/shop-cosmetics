@@ -2,21 +2,25 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth import logout, get_user_model
-# from django_filters import rest_framework as filters
+from rest_framework import viewsets, mixins
+from rest_framework.filters import SearchFilter,OrderingFilter
 # from django_filters import AllValuesFilter, NumberFilter, DateTimeFilter
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
-from .models import User, CosmeticCategory,Cosmetic,Basket ,Order , FavoriteCosmetic
+from .models import User, CosmeticCategory,Cosmetic,Basket ,Order ,UserFav,BankCard
 from .serializers import (
                     EditProfileUserSerializer,
                     CosmeticSerializer,
                     CosmeticCategorySerializer ,
                     BasketSerializer,
                     OrderSerializer,
-                    FavoriteCosmeticSerializer,)
+                    UserFavSerializer,
+                    UserFavDetailSerializer,
+                    BankCardListSerializer,
+                    BankCardDetailSerializer,)
 
 from .permissions import IsAdminUserOrReadOnly
 
@@ -41,6 +45,7 @@ class CosmeticCategoryList(generics.ListCreateAPIView):
     queryset = CosmeticCategory.objects.all()
     serializer_class = CosmeticCategorySerializer
     name = "cosmeticcategory-list"
+    filter_bakcends = [SearchFilter,OrderingFilter]
     filter_fields = ["name"]
     search_fields = ["^name"]
     ordering_fields = ["name"]
@@ -60,8 +65,9 @@ class CosmeticList(generics.ListCreateAPIView):
     serializer_class = CosmeticSerializer
     name = "cosmetic-list"
     #filter_class = ProductFilter
+    filter_bakcends = (SearchFilter,OrderingFilter)
     ordering_fields = ["name", "price"]
-    search_fields = ["^name"]
+    search_fields = ["name"]
     #permission_classes = [IsAdminUserOrReadOnly]
 
 
@@ -196,7 +202,7 @@ class OrderList(UpdateUnconfirmedOrderMixin, generics.ListCreateAPIView):
         return super().get(request, *args, **kwargs)
 
 
-class OrderDetail(generics.RetrieveDestroyAPIView):
+class OrderDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = OrderSerializer
     name = "order-detail"
     authentication_classes = (TokenAuthentication, )
@@ -222,6 +228,18 @@ class OrderDetail(generics.RetrieveDestroyAPIView):
         else:
             data = {"detail": "You cannot delete a confirmed order."}
             return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, *args, **kwargs):
+        order = get_object_or_404(Order, pk=self.kwargs["pk"])
+        serializer = OrderSerializer(order, data=request.data)
+        if not order.is_locked() and serializer.is_valid():
+            serializer.save()
+            return Response(OrderSerializer(order, context={'request': request}).data)
+            #return super().patch(request, *args, **kwargs)
+        else:
+            data = {"detail": "You cannot update a confirmed order."}
+            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 # TODO: Test ConfirmOrder view
@@ -266,34 +284,59 @@ class ConfirmedOrderDetail(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class FavoriteCosmeticList(generics.ListCreateAPIView):
-    serializer_class = FavoriteCosmeticSerializer
-    name = "favorite-cosmetics"
-    authentication_classes = (TokenAuthentication, )
+class UserFavViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                     mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """
+    list
+    retrieve
+    create
+    """
+
+
+    authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
+    #lookup_field = 'cosmetic_pk'
 
     def get_queryset(self):
-        queryset = FavoriteCosmetic.objects.filter(
-            profile=self.request.user
-        )#
-        return queryset
+        # return only users objects
+        return UserFav.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
-        cosmetic = get_object_or_404(Cosmetic, pk=self.kwargs["pk"])
-        profile = profile=self.request.user
-        serializer.save(cosmetic_id=cosmetic.id,profile_id=profile.pk)
-
-
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UserFavDetailSerializer
+        elif self.action == 'create':
+            return UserFavSerializer
+        return UserFavDetailSerializer
 
 
-class FavoriteCosmeticDelete(generics.DestroyAPIView):
-    serializer_class = FavoriteCosmeticSerializer
-    name = "favorite-cosmetics"
-    authentication_classes = (TokenAuthentication, )
+class BankCardList(generics.ListAPIView):
+    serializer_class = BankCardListSerializer
+    authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAuthenticated]
-
     def get_queryset(self):
-        queryset = FavoriteCosmetic.objects.filter(
-            profile=self.request.user
-        )#
-        return queryset
+        # return only users objects
+        return BankCard.objects.filter(user=self.request.user)
+
+
+class BankCardDelete(generics.DestroyAPIView):
+    #queryset = BankCard.objects.filter(user.self.request.user)
+    serializer_class = BankCardDetailSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    name = "Delete"
+    #queryset = BankCard.objects.all()
+    def delete(self, request, pk):
+        try:
+            card = BankCard.objects.get(pk=pk)
+            card.delete()
+            return Response(data={"detail": "sucssefully deleted"} ,status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist:
+            return Response(data={"detail": "not found"} ,status=status.HTTP_404_NOT_FOUND)
+
+
+class BankCardCreate(generics.CreateAPIView):
+    #queryset = BankCard.objects.filter(user.self.request.user)
+    serializer_class = BankCardDetailSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    name = "create"

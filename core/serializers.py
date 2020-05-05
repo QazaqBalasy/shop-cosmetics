@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework.validators import UniqueTogetherValidator
 
-from .models import CosmeticCategory, Cosmetic ,Order, Basket ,FavoriteCosmetic
+from .models import CosmeticCategory, Cosmetic ,Order, Basket, UserFav , BankCard
 
 
 class EditProfileUserSerializer(serializers.ModelSerializer):
@@ -78,22 +79,49 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
         ]
 
 
-class FavoriteCosmeticSerializer(serializers.HyperlinkedModelSerializer):
-    cosmetic_id = serializers.IntegerField(source="cosmetic.pk", read_only=True)
-    cosmetic_name = serializers.SlugRelatedField(slug_field="name", read_only=True)
-    cosmetic_price = serializers.SlugRelatedField(slug_field="price", read_only=True)
-    cosmetic_category = serializers.SlugRelatedField(slug_field="category", read_only=True)
+class UserFavDetailSerializer(serializers.ModelSerializer):
+    cosmetics = CosmeticSerializer()
+    class Meta:
+        model = UserFav
+        fields = ('cosmetics', 'pk')
 
 
+class UserFavSerializer(serializers.ModelSerializer):
+
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
 
     class Meta:
-        model = FavoriteCosmetic
-        fields = [
-            #"url",
-            "pk",
-            "cosmetic_id",
-            "cosmetic_name",
-            "cosmetic_price",
-            "cosmetic_category",
+        model = UserFav
 
+        validators = [
+            UniqueTogetherValidator(
+                queryset=UserFav.objects.all(),
+                fields=('user', 'cosmetics'),
+                message='已经收藏'
+            )
         ]
+
+        fields = ('user', 'cosmetics', 'pk')
+
+
+class BankCardListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BankCard
+        read_only_fields = ['number','pk']
+        fields = ('pk','number')
+
+
+class BankCardDetailSerializer(serializers.ModelSerializer):
+
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
+    class Meta(object):
+        """docstring for Meta."""
+        model = BankCard
+        read_only_fields = ['pk']
+        fields = ('user','pk','number','name','surname','CVC','date')
