@@ -1,1 +1,1 @@
-web: gunicorn test2.wsgi.py
+web: gunicorn test2.wsgi
