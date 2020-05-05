@@ -127,19 +127,6 @@ class Basket(models.Model):
         ]
 
 
-# class FavoriteCosmetic(models.Model):
-#     cosmetics = models.ManyToManyField(Cosmetic)
-#     profile = models.ForeignKey(
-#         User, on_delete=models.CASCADE, related_name="favorite_cosmetics", editable=False
-#     )
-#     # class Meta:
-#     #     constraints = [
-#     #         models.UniqueConstraint(
-#     #             fields=["profile","cosmetic"] , name="unique_favorite_cosmetics"
-#     #         )
-#     #     ]
-
-
 class UserFav(models.Model):
     """
     Favorite Cosmetics of user
