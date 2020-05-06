@@ -71,7 +71,7 @@
   [POST]
   Also add pk(aka id) of cosmetics in your BODY to add it to fav.Otherwise error will raise.
   Include token of the user in HEADERS
-* bankcards/add/
+* bankcards/add/.
   [POST]
   Add a bank card.
   [GET]
