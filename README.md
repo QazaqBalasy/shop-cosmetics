@@ -42,10 +42,11 @@ python manage.py runserver
 python manage.py createsuperuser
 ```
 * Then login using your creaditnails you were provided
-* go to 127.0.0.1:8000/admin/ to login and manage your db 
+* go to 127.0.0.1:8000/admin/ to login and manage your db
 
 # TODO
 
 * Fix 'Favorites' (model,views,serializers)
 
-
+# Endpoints
+* [Endpoint guidlines for this project](docs/guidlines.md)
