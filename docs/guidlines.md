@@ -1,8 +1,11 @@
 * admin/
+  
   Admin page to manage your db.
 * ^api/login/
+  
   Get the token and user info:
   - api/login/social/token
+  
   Get only token:
   - api/login/social/token_user
 * me/
