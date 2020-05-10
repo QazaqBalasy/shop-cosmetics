@@ -33,6 +33,29 @@ class CosmeticSerializer(serializers.HyperlinkedModelSerializer):
         model = Cosmetic
         #read_only_fields = ["date_added", "date_updated"]
         fields = [
+            "image_url",
+            "url",
+            "pk",
+            "name",
+            "category",
+            "price",
+            #"description",
+            #"color",
+            #"volume",
+            #"skin_type",
+            #"target_area"
+        ]
+
+
+class CosmeticDetailSerializer(serializers.HyperlinkedModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=CosmeticCategory.objects.all(), slug_field="name"
+    )
+    class Meta:
+        model = Cosmetic
+        #read_only_fields = ["date_added", "date_updated"]
+        fields = [
+            "image_url",
             "url",
             "pk",
             "name",
@@ -42,19 +65,23 @@ class CosmeticSerializer(serializers.HyperlinkedModelSerializer):
             "color",
             "volume",
             "skin_type",
+            "target_area"
         ]
+
+
 class BasketSerializer(serializers.ModelSerializer):
     cosmetic_id = serializers.IntegerField(source="cosmetic.pk", read_only=True)
     cosmetic = serializers.SlugRelatedField(slug_field="name", read_only=True)
+    image_url = serializers.SlugRelatedField(slug_field="image_url", read_only=True)
     subtotal = serializers.DecimalField(decimal_places=2, max_digits=9, read_only=True)
 
     class Meta:
         model = Basket
-        fields = ["cosmetic", "cosmetic_id", "quantity", "price", "subtotal"]
+        fields = ["cosmetic", "cosmetic_id","image_url","quantity", "price", "subtotal"]
 
 
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
-    products = BasketSerializer(many=True, read_only=True)
+    products = BasketSerializer(source="cosmetics",many=True, read_only=True)
     total_price = serializers.DecimalField(
         decimal_places=2, max_digits=9, read_only=True
     )
@@ -99,7 +126,7 @@ class UserFavSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=UserFav.objects.all(),
                 fields=('user', 'cosmetics'),
-                message='已经收藏'
+                message="Already added"
             )
         ]
 

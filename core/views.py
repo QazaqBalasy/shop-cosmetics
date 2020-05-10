@@ -14,6 +14,7 @@ from .models import User, CosmeticCategory,Cosmetic,Basket ,Order ,UserFav,BankC
 from .serializers import (
                     EditProfileUserSerializer,
                     CosmeticSerializer,
+                    CosmeticDetailSerializer,
                     CosmeticCategorySerializer ,
                     BasketSerializer,
                     OrderSerializer,
@@ -23,6 +24,7 @@ from .serializers import (
                     BankCardDetailSerializer,)
 
 from .permissions import IsAdminUserOrReadOnly
+from django_filters.rest_framework import DjangoFilterBackend
 
 class MyProfile(generics.RetrieveUpdateAPIView):
     queryset = User.objects.filter(is_active=True)
@@ -41,18 +43,18 @@ class MyProfile(generics.RetrieveUpdateAPIView):
     #     return obj
 
 
-class CosmeticCategoryList(generics.ListCreateAPIView):
+class CosmeticCategoryList(generics.ListAPIView):
     queryset = CosmeticCategory.objects.all()
     serializer_class = CosmeticCategorySerializer
     name = "cosmeticcategory-list"
     filter_bakcends = [SearchFilter,OrderingFilter]
-    filter_fields = ["name"]
+    filterset_fields = ["name"]
     search_fields = ["^name"]
     ordering_fields = ["name"]
     #permission_classes = [IsAdminUserOrReadOnly]
 
 
-class CosmeticCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
+class CosmeticCategoryDetail(generics.RetrieveAPIView):
     queryset = CosmeticCategory.objects.all()
     serializer_class = CosmeticCategorySerializer
     name = "cosmeticcategory-detail"
@@ -60,20 +62,21 @@ class CosmeticCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminUserOrReadOnly]
 
 
-class CosmeticList(generics.ListCreateAPIView):
+class CosmeticList(generics.ListAPIView):
     queryset = Cosmetic.objects.all()
     serializer_class = CosmeticSerializer
     name = "cosmetic-list"
     #filter_class = ProductFilter
     filter_bakcends = (SearchFilter,OrderingFilter)
-    ordering_fields = ["name", "price"]
-    search_fields = ["name"]
+    filterset_fields = ["category","brand"]
+    ordering_fields = ["name", "price","volume","brand"]
+    search_fields = ["name","category","brand"]
     #permission_classes = [IsAdminUserOrReadOnly]
 
 
-class CosmeticDetail(generics.RetrieveUpdateDestroyAPIView):
+class CosmeticDetail(generics.RetrieveAPIView):
     queryset = Cosmetic.objects.all()
-    serializer_class = CosmeticSerializer
+    serializer_class = CosmeticDetailSerializer
     name = "cosmetic-detail"
     #permission_classes = [IsAdminUserOrReadOnly]
 

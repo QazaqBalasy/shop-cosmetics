@@ -32,11 +32,13 @@ class Cosmetic(models.Model):
     category = models.ForeignKey(
         CosmeticCategory, on_delete=models.CASCADE, related_name="cosmetics"
     )
-
+    image_url = models.CharField(max_length=255,blank=True,null=True)
     description = models.CharField(max_length=255,blank=True,null=True)
     color = models.CharField(max_length=25,blank=True,null=True)
     skin_type = models.CharField(max_length=25,blank=True,null=True)
     volume = models.CharField(max_length=25,blank=True,null=True)
+    target_area = models.CharField(max_length=25,blank=True,null=True)
+
     def __str__(self):
         return (self.name + " " + self.brand)
 
