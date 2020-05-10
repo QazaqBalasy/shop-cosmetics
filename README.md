@@ -46,7 +46,7 @@ python manage.py createsuperuser
 
 # TODO
 
-* Fix 'Favorites' (model,views,serializers)
+* Fix 'Favorites'
 
 # Endpoints
 * [Endpoint guidlines for this project](docs/guidlines.md)
